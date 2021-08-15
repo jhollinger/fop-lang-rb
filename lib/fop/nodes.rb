@@ -13,13 +13,14 @@ module Fop
     end
 
     Match = Struct.new(:wildcard, :tokens) do
-      NUM = "N"
-      WORD = "W"
-      WILD = "*"
+      NUM = "N".freeze
+      WORD = "W".freeze
+      WILD = "*".freeze
+      BLANK = "".freeze
 
       def consume!(input)
         if (val = input.slice!(@regex))
-          @expression ? @expression.call(val) : val
+          @expression && val != BLANK ? @expression.call(val) : val
         end
       end
 
@@ -35,28 +36,32 @@ module Fop
         @match = match.char
         @regex =
           case @match
-          when NUM then Regexp.new((wildcard ? ".*" : "^") + "[0-9]+")
-          when WORD then Regexp.new((wildcard ? ".*" : "^") + "[a-zA-Z]+")
+          when NUM then Regexp.new((wildcard ? ".*?" : "^") + "[0-9]+")
+          when WORD then Regexp.new((wildcard ? ".*?" : "^") + "[a-zA-Z]+")
           when WILD then /.*/
           else raise ParserError, "Unknown match type '#{@match}'"
           end
 
         if (op = tokens.shift)
           raise ParserError, "Unexpected #{op}" unless op.is_a? Tokenizer::Char
-          arg = tokens.shift
-          raise ParserError, "Unexpected #{arg}" unless arg.nil? or arg.is_a? Tokenizer::Char
+          arg = tokens.reduce("") { |acc, t|
+            raise ParserError, "Unexpected #{t}" unless t.is_a? Tokenizer::Char
+            acc + t.char
+          }
 
           @op = op.char
-          @arg = arg&.char
+          @arg = arg == BLANK ? nil : arg
           @expression =
             case @op
-            when "=" then ->(_) { @arg || "".freeze }
+            when "=" then ->(_) { @arg || BLANK }
             when "+", "-", "*", "/"
               raise ParserError, "Operator #{@op} is only available for numeric matches" unless @match == NUM
               raise ParserError, "Operator #{@op} expects an argument" if @arg.nil?
               ->(x) { x.to_i.send(@op, @arg.to_i) }
             else raise ParserError, "Unknown operator #{@op}"
             end
+        else
+          @op, @arg, @expression = nil, nil, nil
         end
       end
     end
