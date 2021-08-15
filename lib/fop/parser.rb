@@ -1,6 +1,6 @@
 require_relative 'nodes'
 
-module VersionMask
+module Fop
   module Parser
     Error = Class.new(StandardError)
 

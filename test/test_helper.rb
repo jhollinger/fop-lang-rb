@@ -1,2 +1,2 @@
-require 'version_mask'
+require 'fop_lang'
 require 'minitest/autorun'

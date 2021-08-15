@@ -1,12 +1,12 @@
-module VersionMask
+module Fop
   module Tokenizer
     Char = Struct.new(:char)
     Error = Class.new(StandardError)
 
-    def self.tokenize!(mask)
+    def self.tokenize!(src)
       tokens = []
       escape = false
-      mask.each_char { |char|
+      src.each_char { |char|
         if escape
           tokens << Char.new(char)
           escape = false

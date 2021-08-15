@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    version_mask (0.1.0)
+    fop_lang (0.1.0)
 
 GEM
   remote: https://rubygems.org/
@@ -13,9 +13,9 @@ PLATFORMS
   universal-darwin-20
 
 DEPENDENCIES
+  fop_lang!
   minitest (~> 5.10)
   rake
-  version_mask!
 
 BUNDLED WITH
    2.2.1

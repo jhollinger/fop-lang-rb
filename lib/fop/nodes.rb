@@ -1,4 +1,4 @@
-module VersionMask
+module Fop
   module Nodes
     Text = Struct.new(:wildcard, :str) do
       def consume!(input)

@@ -1,12 +1,12 @@
 require_relative 'tokenizer'
 require_relative 'parser'
 
-module VersionMask
-  class Mask
+module Fop
+  class Program
     attr_reader :nodes
 
-    def initialize(mask)
-      tokens = Tokenizer.tokenize! mask
+    def initialize(src)
+      tokens = Tokenizer.tokenize! src
       @nodes = Parser.parse! tokens
     end
 
