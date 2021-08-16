@@ -37,13 +37,14 @@ If `\` (escape) is used before the special characters `*`, `{` or `}`, then that
 
 Operations are the interesting part of Fop, and are specified between `{` and `}`. An Operation can consist of one to three parts:
 
-1. Matching character class (required): Defines what characters the operation will match and operate on.
+1. Matching class (required): Defines what characters the operation will match and operate on.
   * `N` is the numeric class and will match one or more digits.
   * `A` is the alpha class and will match one or more letters (lower or upper case).
   * `W` is the word class and matches alphanumeric chars and underscores.
   * `*` is the wildcard class and greedily matches everything after it.
+  * `/.../` matches on the supplied regex between the `/`'s. If you're regex contains a `/`, it must be escaped.
 3. Operator (optional): What to do to the matching characters.
-  * `=` Replace the matching character(s) with the given argument. If no argument is given, drop the matching chars.
+  * `=` Replace the matching character(s) with the given argument. If no argument is given, drop the matching chars. Note that any `/` chars must be escaped, so as not to be mistaken for a regex.
   * `+` Perform addition on the matching number and the argument (`N` only).
   * `-` Subtract the argument from the matching number (`N` only).
 5. Operator argument (required for some operators): meaning varies by operator.
@@ -55,6 +56,16 @@ Operations are the interesting part of Fop, and are specified between `{` and `}
 
   puts f.apply('release-4.99.1')
   =>           'release-5.100.0'
+```
+
+```ruby
+  f = Fop('rel{/(ease)?/}-{N=5}.{N+1}.{N=0}')
+
+  puts f.apply('release-4.99.1')
+  =>           'release-5.100.0'
+
+  puts f.apply('rel-4.99.1')
+  =>           'rel-5.100.0'
 ```
 
 ```ruby
