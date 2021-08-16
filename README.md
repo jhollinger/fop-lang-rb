@@ -1,6 +1,6 @@
 # fop_lang
 
-Fop (Filter and OPperations language) is an experimental, tiny expression language in the vein of awk and sed. This is a Ruby implementation. It is useful for simultaneously matching and transforming text input.
+Fop (Filter and OPerations language) is an experimental, tiny expression language in the vein of awk and sed. This is a Ruby implementation. It is useful for simultaneously matching and transforming text input.
 
 ```ruby
 gem 'fop_lang'
