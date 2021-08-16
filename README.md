@@ -29,7 +29,7 @@ The above expression contains the only two parts of Fop (except for the wildcard
 
 **Text Literals**
 
-A text literal works how it sounds: the input must match it exactly. The only exception is the `*` (wildcard) character, which matches 0 or more of anything. Wildcards can be used anywhere except inside `{...}` (operations).
+A text literal works how it sounds: the input must match it exactly. If it matches it passes through unchanged. The only exception is the `*` (wildcard) character, which matches 0 or more of anything. Wildcards can be used anywhere except inside `{...}` (operations).
 
 If `\` (escape) is used before the special characters `*`, `{` or `}`, then that character is treated like a text literal. It's recommended to use single-quoted Ruby strings with Fop expressions that so you don't need to double-escape.
 
