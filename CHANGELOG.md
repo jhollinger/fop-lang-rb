@@ -1,3 +1,6 @@
+### 0.3.0 (2021-08-16)
+* Add Regex support to operations
+
 ### 0.2.0 (2021-08-15)
 
 * Change W char class to A.
