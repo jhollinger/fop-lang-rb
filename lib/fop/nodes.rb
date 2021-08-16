@@ -15,6 +15,7 @@ module Fop
     Match = Struct.new(:wildcard, :tokens) do
       NUM = "N".freeze
       WORD = "W".freeze
+      ALPHA = "A".freeze
       WILD = "*".freeze
       BLANK = "".freeze
 
@@ -37,7 +38,8 @@ module Fop
         @regex =
           case @match
           when NUM then Regexp.new((wildcard ? ".*?" : "^") + "[0-9]+")
-          when WORD then Regexp.new((wildcard ? ".*?" : "^") + "[a-zA-Z]+")
+          when WORD then Regexp.new((wildcard ? ".*?" : "^") + "\\w+")
+          when ALPHA then Regexp.new((wildcard ? ".*?" : "^") + "[a-zA-Z]+")
           when WILD then /.*/
           else raise ParserError, "Unknown match type '#{@match}'"
           end
