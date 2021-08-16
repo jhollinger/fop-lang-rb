@@ -70,4 +70,55 @@ class MatchOpTest < Minitest::Test
     assert_equal "release-A.9_bbb.Z", f.apply("release-A.9_bbb.Z")
     assert_nil f.apply("release-A.-.Z")
   end
+
+  def test_regex_match
+    f = Fop('rel{/(ease)?/}-{N}.{N}.{N}')
+    assert_equal [
+      "Text rel",
+      "/(ease)?/",
+      "Text -",
+      "N",
+      "Text .",
+      "N",
+      "Text .",
+      "N",
+    ], f.nodes.map(&:to_s)
+    assert_equal "release-1.1.1", f.apply("release-1.1.1")
+    assert_equal "rel-1.1.1", f.apply("rel-1.1.1")
+    assert_nil f.apply("rel1.1.1")
+  end
+
+  def test_regex_match_with_slash
+    f = Fop('rel{/(\/ease)?/}-{N}.{N}.{N}')
+    assert_equal [
+      "Text rel",
+      '/(/ease)?/',
+      "Text -",
+      "N",
+      "Text .",
+      "N",
+      "Text .",
+      "N",
+    ], f.nodes.map(&:to_s)
+    assert_equal "rel/ease-1.1.1", f.apply("rel/ease-1.1.1")
+    assert_nil f.apply("release-1.1.1")
+  end
+
+  def test_regex_with_brace
+    f = Fop('rel{/(ease){0,2}/}-{N}.{N}.{N}')
+    assert_equal [
+      "Text rel",
+      '/(ease){0,2}/',
+      "Text -",
+      "N",
+      "Text .",
+      "N",
+      "Text .",
+      "N",
+    ], f.nodes.map(&:to_s)
+    assert_equal "rel-1.1.1", f.apply("rel-1.1.1")
+    assert_equal "release-1.1.1", f.apply("release-1.1.1")
+    assert_equal "releaseease-1.1.1", f.apply("releaseease-1.1.1")
+    assert_nil f.apply("releaseeaseease-1.1.1")
+  end
 end

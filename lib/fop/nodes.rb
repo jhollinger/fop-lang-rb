@@ -12,59 +12,19 @@ module Fop
       end
     end
 
-    Match = Struct.new(:wildcard, :tokens) do
-      NUM = "N".freeze
-      WORD = "W".freeze
-      ALPHA = "A".freeze
-      WILD = "*".freeze
-      BLANK = "".freeze
-
+    Op = Struct.new(:wildcard, :match, :regex_match, :regex, :operator, :operator_arg, :expression) do
       def consume!(input)
-        if (val = input.slice!(@regex))
-          @expression && val != BLANK ? @expression.call(val) : val
+        if (val = input.slice!(regex))
+          found_val = regex_match || val != Parser::BLANK
+          expression && found_val ? expression.call(val) : val
         end
       end
 
       def to_s
         w = wildcard ? "*" : nil
-        @op ? "#{w}#{@match} #{@op} #{@arg}" : "#{w}#{@match}"
-      end
-
-      def parse!
-        match = tokens.shift || raise(ParserError, "Empty match")
-        raise ParserError, "Unexpected #{match}" unless match.is_a? Tokenizer::Char
-
-        @match = match.char
-        @regex =
-          case @match
-          when NUM then Regexp.new((wildcard ? ".*?" : "^") + "[0-9]+")
-          when WORD then Regexp.new((wildcard ? ".*?" : "^") + "\\w+")
-          when ALPHA then Regexp.new((wildcard ? ".*?" : "^") + "[a-zA-Z]+")
-          when WILD then /.*/
-          else raise ParserError, "Unknown match type '#{@match}'"
-          end
-
-        if (op = tokens.shift)
-          raise ParserError, "Unexpected #{op}" unless op.is_a? Tokenizer::Char
-          arg = tokens.reduce("") { |acc, t|
-            raise ParserError, "Unexpected #{t}" unless t.is_a? Tokenizer::Char
-            acc + t.char
-          }
-
-          @op = op.char
-          @arg = arg == BLANK ? nil : arg
-          @expression =
-            case @op
-            when "=" then ->(_) { @arg || BLANK }
-            when "+", "-", "*", "/"
-              raise ParserError, "Operator #{@op} is only available for numeric matches" unless @match == NUM
-              raise ParserError, "Operator #{@op} expects an argument" if @arg.nil?
-              ->(x) { x.to_i.send(@op, @arg.to_i) }
-            else raise ParserError, "Unknown operator #{@op}"
-            end
-        else
-          @op, @arg, @expression = nil, nil, nil
-        end
+        s = "#{w}#{match}"
+        s << " #{operator} #{operator_arg}" if operator
+        s
       end
     end
   end

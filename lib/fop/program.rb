@@ -6,7 +6,7 @@ module Fop
     attr_reader :nodes
 
     def initialize(src)
-      tokens = Tokenizer.tokenize! src
+      tokens = Tokenizer.new(src).tokenize!
       @nodes = Parser.parse! tokens
     end
 

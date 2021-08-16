@@ -127,4 +127,36 @@ class ReplaceOpTest < Minitest::Test
     assert_equal "release-5.100.0", f.apply("release-5.100.0")
     assert_equal "release-5.100.0", f.apply("release-5.100.0-foo")
   end
+
+  def test_regex_clear
+    f = Fop('rel{/(ease)?/=}-{N}.{N}.{N}')
+    assert_equal [
+      "Text rel",
+      '/(ease)?/ = ',
+      "Text -",
+      "N",
+      "Text .",
+      "N",
+      "Text .",
+      "N",
+    ], f.nodes.map(&:to_s)
+    assert_equal "rel-1.1.1", f.apply("rel-1.1.1")
+    assert_equal "rel-1.1.1", f.apply("release-1.1.1")
+  end
+
+  def test_regex_replace_with_slash
+    f = Fop('rel{/(ease)?/=\/ease}-{N}.{N}.{N}')
+    assert_equal [
+      "Text rel",
+      '/(ease)?/ = /ease',
+      "Text -",
+      "N",
+      "Text .",
+      "N",
+      "Text .",
+      "N",
+    ], f.nodes.map(&:to_s)
+    assert_equal "rel/ease-1.1.1", f.apply("rel-1.1.1")
+    assert_equal "rel/ease-1.1.1", f.apply("release-1.1.1")
+  end
 end
