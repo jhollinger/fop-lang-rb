@@ -36,7 +36,7 @@ Operations are the interesting part of Fop, and are specified between `{` and `}
 1. Matching character class (required): Defines what characters the operation will match and operate on.
   * `N` is the numeric class and will match one or more digits.
   * `A` is the alpha class and will match one or more letters (lower or upper case).
-  * `W` is the word class and behaves like `A` but includeds `_`.
+  * `W` is the word class and matches alphanumeric chars and underscores.
   * `*` is the wildcard class and greedily matches everything after it.
 3. Operator (optional): What to do to the matching characters.
   * `=` Replace the matching character(s) with the given argument. If no argument is given, drop the matching chars.
