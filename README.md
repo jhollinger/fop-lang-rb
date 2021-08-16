@@ -2,6 +2,10 @@
 
 Fop (Filter and OPperations language) is an experimental, tiny expression language in the vein of awk and sed. This is a Ruby implementation. It is useful for simultaneously matching and transforming text input.
 
+```ruby
+gem 'fop_lang'
+```
+
 ## Release Number Example
 
 This example takes in GitHub branch names, decides if they're release branches, and if so, increments the version number.
