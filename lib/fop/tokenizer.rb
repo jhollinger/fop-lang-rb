@@ -1,7 +1,7 @@
 module Fop
   class Tokenizer
     Char = Struct.new(:char)
-    Op = Struct.new(:tokens)
+    Op = Struct.new(:match, :operator, :arg)
     Regex = Struct.new(:src)
     Error = Class.new(StandardError)
 
@@ -22,28 +22,26 @@ module Fop
       i = 0
       until i > @end do
         char = @src[i]
+        i += 1
+
         if escape
           tokens << Char.new(char)
           escape = false
-          i += 1
           next
         end
 
         case char
         when ESCAPE
           escape = true
-          i += 1
         when OP_OPEN
-          i, op = operation! i + 1
+          i, op = operation! i
           tokens << op
         when OP_CLOSE
           raise "Unexpected #{OP_CLOSE}"
         when WILDCARD
           tokens << :wildcard
-          i += 1
         else
           tokens << Char.new(char)
-          i += 1
         end
       end
 
@@ -54,40 +52,63 @@ module Fop
     private
 
     def operation!(i)
-      escape = false
       found_close = false
-      tokens = []
+      op = Op.new(nil, nil, "")
 
+      # Find matcher
+      until found_close or op.match or i > @end do
+        char = @src[i]
+        i += 1
+        case char
+        when OP_CLOSE
+          found_close = true
+        when REGEX_MARKER
+          i, reg = regex! i
+          op.match = reg
+        else
+          op.match = Char.new(char)
+        end
+      end
+
+      # Find operator
+      until found_close or op.operator or i > @end do
+        char = @src[i]
+        i += 1
+        case char
+        when OP_CLOSE
+          found_close = true
+        else
+          op.operator = Char.new(char)
+        end
+      end
+
+      # Find operator arg
+      escape = false
       until found_close or i > @end do
         char = @src[i]
+        i += 1
+
         if escape
-          tokens << Char.new(char)
+          op.arg << char
           escape = false
-          i += 1
           next
         end
 
         case char
         when ESCAPE
           escape = true
-          i += 1
         when OP_OPEN
           raise "Unexpected #{OP_OPEN}"
         when OP_CLOSE
           found_close = true
-          i += 1
-        when REGEX_MARKER
-          i, reg = regex! i + 1
-          tokens << reg
         else
-          tokens << Char.new(char)
-          i += 1
+          op.arg << char
         end
       end
 
       raise Error, "Unclosed operation" if !found_close
       raise Error, "Trailing escape" if escape
-      return i, Op.new(tokens)
+      return i, op
     end
 
     def regex!(i)

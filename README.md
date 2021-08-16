@@ -44,7 +44,7 @@ Operations are the interesting part of Fop, and are specified between `{` and `}
   * `*` is the wildcard class and greedily matches everything after it.
   * `/.../` matches on the supplied regex between the `/`'s. If you're regex contains a `/`, it must be escaped.
 3. Operator (optional): What to do to the matching characters.
-  * `=` Replace the matching character(s) with the given argument. If no argument is given, drop the matching chars. Note that any `/` chars must be escaped, so as not to be mistaken for a regex.
+  * `=` Replace the matching character(s) with the given argument. If no argument is given, drop the matching chars.
   * `+` Perform addition on the matching number and the argument (`N` only).
   * `-` Subtract the argument from the matching number (`N` only).
 5. Operator argument (required for some operators): meaning varies by operator.

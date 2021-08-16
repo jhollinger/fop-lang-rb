@@ -59,7 +59,7 @@ module Fop
         Nodes::Text.new(wildcard, token.char.clone)
       when Tokenizer::Op
         op = Nodes::Op.new(wildcard)
-        parse_op! op, token.tokens
+        parse_op! op, token
         op
       when :wildcard
         :wildcard
@@ -85,40 +85,35 @@ module Fop
       end
     end
 
-    def self.parse_op!(node, tokens)
-      t = tokens[0] || raise(Error, "Empty operation")
+    def self.parse_op!(node, token)
       # parse the matching type
       node.regex =
-        case t
+        case token.match
         when Tokenizer::Char
-          node.match = t.char
+          node.match = token.match.char
           node.regex_match = false
-          case t.char
+          case node.match
           when MATCH_NUM then Regexp.new((node.wildcard ? ".*?" : "^") + "[0-9]+")
           when MATCH_WORD then Regexp.new((node.wildcard ? ".*?" : "^") + "\\w+")
           when MATCH_ALPHA then Regexp.new((node.wildcard ? ".*?" : "^") + "[a-zA-Z]+")
           when MATCH_WILD then /.*/
-          else raise Error, "Unknown match type '#{t.char}'"
+          else raise Error, "Unknown match type '#{node.match}'"
           end 
         when Tokenizer::Regex
-          node.match = "/#{t.src}/"
+          node.match = "/#{token.match.src}/"
           node.regex_match = true
-          Regexp.new((node.wildcard ? ".*?" : "^") + t.src)
+          Regexp.new((node.wildcard ? ".*?" : "^") + token.match.src)
+        when nil
+          raise Error, "Empty operation"
         else
-          raise Error, "Unexpected token #{t}"
+          raise Error, "Unexpected #{token.match}"
         end
 
       # parse the operator (if any)
-      if (op = tokens[1])
-        raise Error, "Unexpected #{op}" unless op.is_a? Tokenizer::Char
-        node.operator = op.char
-
-        arg = tokens[2..-1].reduce("") { |acc, t|
-          raise Error, "Unexpected #{t}" unless t.is_a? Tokenizer::Char
-          acc + t.char
-        }
-        node.operator_arg = arg == BLANK ? nil : arg
-
+      if token.operator
+        raise Error, "Unexpected #{token.operator} for operator" unless token.operator.is_a? Tokenizer::Char
+        node.operator = token.operator.char
+        node.operator_arg = token.arg if token.arg and token.arg != BLANK
         node.expression =
           case node.operator
           when OP_REPLACE
