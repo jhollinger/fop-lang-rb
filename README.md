@@ -42,7 +42,7 @@ Operations are the interesting part of Fop, and are specified between `{` and `}
   * `A` is the alpha class and will match one or more letters (lower or upper case).
   * `W` is the word class and matches alphanumeric chars and underscores.
   * `*` is the wildcard class and greedily matches everything after it.
-  * `/.../` matches on the supplied regex between the `/`'s. If you're regex contains a `/`, it must be escaped.
+  * `/.../` matches on the supplied regex between the `/`'s. If you're regex contains a `/`, it must be escaped. Capture groups may be referenced in the operator argument as `$1`, `$2`, etc.
 3. Operator (optional): What to do to the matching characters.
   * `=` Replace the matching character(s) with the given argument. If no argument is given, drop the matching chars.
   * `>` Append the following chars to the matching value.
