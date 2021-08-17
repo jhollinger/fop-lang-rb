@@ -3,6 +3,7 @@ require_relative 'nodes'
 module Fop
   module Parser
     Error = Class.new(StandardError)
+    CaptureGroup = Struct.new(:index)
 
     MATCH_NUM = "N".freeze
     MATCH_WORD = "W".freeze
@@ -16,6 +17,13 @@ module Fop
     OP_SUB = "-".freeze
     OP_MUL = "*".freeze
     OP_DIV = "/".freeze
+    VAR = "$".freeze
+    CAP_NUM = /^[1-9]$/
+
+    EXP_REPLACE = ->(_val, _op, arg) { arg || BLANK }
+    EXP_MATH = ->(val, op, arg) { val.to_i.send(op, arg.to_i) }
+    EXP_APPEND = ->(val, _op, arg) { val + arg }
+    EXP_PREPEND = ->(val, _op, arg) { arg + val }
 
     def self.parse!(tokens)
       nodes = []
@@ -47,7 +55,7 @@ module Fop
       when Nodes::Text, Nodes::Op
         nodes << curr_node
       else
-        raise "Unexpected end node #{curr_node}"
+        raise Error, "Unexpected end node #{curr_node}"
       end
 
       nodes
@@ -116,24 +124,58 @@ module Fop
         raise Error, "Unexpected #{token.operator} for operator" unless token.operator.is_a? Tokenizer::Char
         node.operator = token.operator.char
         node.operator_arg = token.arg if token.arg and token.arg != BLANK
+        node.operator_arg_w_caps = parse_captures! node.operator_arg if node.operator_arg and node.regex_match
         node.expression =
           case node.operator
           when OP_REPLACE
-            ->(_) { node.operator_arg || BLANK }
+            EXP_REPLACE
           when OP_ADD, OP_SUB, OP_MUL, OP_DIV
             raise Error, "Operator #{node.operator} is only available for numeric matches" unless node.match == MATCH_NUM
             raise Error, "Operator #{node.operator} expects an argument" if node.operator_arg.nil?
-            ->(x) { x.to_i.send(node.operator, node.operator_arg.to_i) }
+            EXP_MATH
           when OP_APPEND
             raise Error, "Operator #{node.operator} expects an argument" if node.operator_arg.nil?
-            ->(x) { x + node.operator_arg }
+            EXP_APPEND
           when OP_PREPEND
             raise Error, "Operator #{node.operator} expects an argument" if node.operator_arg.nil?
-            ->(x) { node.operator_arg + x }
+            EXP_PREPEND
           else
-            raise(Error, "Unknown operator #{node.operator}")
+            raise Error, "Unknown operator #{node.operator}"
           end
       end
+    end
+
+    def self.parse_captures!(arg)
+      i = 0
+      iend = arg.size - 1
+      escape = false
+      nodes = []
+
+      until i > iend
+        char = arg[i]
+        i += 1
+
+        if escape
+          nodes << char
+          escape = false
+          next
+        end
+
+        case char
+        when Tokenizer::ESCAPE
+          escape = true
+        when VAR
+          num = arg[i].to_s
+          raise Error, "Capture group number must be between 1 and 9; found '#{num}'" unless num =~ CAP_NUM
+          nodes << CaptureGroup.new(num.to_i - 1)
+          i += 1
+        else
+          nodes << char
+        end
+      end
+
+      raise Error, "Trailing escape" if escape
+      nodes
     end
   end
 end

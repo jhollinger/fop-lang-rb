@@ -145,7 +145,7 @@ class ReplaceOpTest < Minitest::Test
   end
 
   def test_regex_replace_with_slash
-    f = Fop('rel{/(ease)?/=\/ease}-{N}.{N}.{N}')
+    f = Fop('rel{/(ease)?/=/ease}-{N}.{N}.{N}')
     assert_equal [
       "Text rel",
       '/(ease)?/ = /ease',
@@ -158,5 +158,14 @@ class ReplaceOpTest < Minitest::Test
     ], f.nodes.map(&:to_s)
     assert_equal "rel/ease-1.1.1", f.apply("rel-1.1.1")
     assert_equal "rel/ease-1.1.1", f.apply("release-1.1.1")
+  end
+
+  def test_regex_replace_with_capture_groups
+    f = Fop("A {/(B) (C)/=$2 $1}")
+    assert_equal [
+      "Text A ",
+      "/(B) (C)/ = $2 $1",
+    ], f.nodes.map(&:to_s)
+    assert_equal "A C B", f.apply("A B C")
   end
 end
