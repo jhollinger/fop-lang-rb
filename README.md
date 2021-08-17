@@ -45,6 +45,8 @@ Operations are the interesting part of Fop, and are specified between `{` and `}
   * `/.../` matches on the supplied regex between the `/`'s. If you're regex contains a `/`, it must be escaped.
 3. Operator (optional): What to do to the matching characters.
   * `=` Replace the matching character(s) with the given argument. If no argument is given, drop the matching chars.
+  * `>` Append the following chars to the matching value.
+  * `<` Prepend the following chars to the matching value.
   * `+` Perform addition on the matching number and the argument (`N` only).
   * `-` Subtract the argument from the matching number (`N` only).
 5. Operator argument (required for some operators): meaning varies by operator.

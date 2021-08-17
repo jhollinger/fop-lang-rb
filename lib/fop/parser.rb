@@ -10,6 +10,8 @@ module Fop
     MATCH_WILD = "*".freeze
     BLANK = "".freeze
     OP_REPLACE = "=".freeze
+    OP_APPEND = ">".freeze
+    OP_PREPEND = "<".freeze
     OP_ADD = "+".freeze
     OP_SUB = "-".freeze
     OP_MUL = "*".freeze
@@ -122,6 +124,12 @@ module Fop
             raise Error, "Operator #{node.operator} is only available for numeric matches" unless node.match == MATCH_NUM
             raise Error, "Operator #{node.operator} expects an argument" if node.operator_arg.nil?
             ->(x) { x.to_i.send(node.operator, node.operator_arg.to_i) }
+          when OP_APPEND
+            raise Error, "Operator #{node.operator} expects an argument" if node.operator_arg.nil?
+            ->(x) { x + node.operator_arg }
+          when OP_PREPEND
+            raise Error, "Operator #{node.operator} expects an argument" if node.operator_arg.nil?
+            ->(x) { node.operator_arg + x }
           else
             raise(Error, "Unknown operator #{node.operator}")
           end
