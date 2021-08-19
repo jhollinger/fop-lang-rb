@@ -89,7 +89,7 @@ module Fop
         end
       when Tokens::REG_DELIM
         exp.regex = parse_regex!(exp.wildcard)
-        exp.match = exp.regex&.to_s
+        exp.match = exp.regex&.src
         exp.regex_match = true
         @tokenizer.reset_escapes!
       else

@@ -5,7 +5,7 @@ class ParserTest < Minitest::Test
     f, errors = Fop.compile('release-5.125.0')
     assert_equal [], errors
     assert_equal [
-      "Text release-5.125.0",
+      "[txt] release-5.125.0",
     ], f.nodes.map(&:to_s)
   end
 
@@ -13,7 +13,7 @@ class ParserTest < Minitest::Test
     f, errors = Fop.compile('{N}')
     assert_equal [], errors
     assert_equal [
-      "N",
+      "[exp] N",
     ], f.nodes.map(&:to_s)
   end
 
@@ -21,7 +21,7 @@ class ParserTest < Minitest::Test
     f, errors = Fop.compile('{/[0-9]{2}/}')
     assert_equal [], errors
     assert_equal [
-      "/^[0-9]{2}/",
+      "[exp] ^[0-9]{2}",
     ], f.nodes.map(&:to_s)
   end
 
@@ -32,7 +32,7 @@ class ParserTest < Minitest::Test
     f, errors = Fop.compile('/[a-z]+/')
     assert_equal [], errors
     assert_equal [
-      "/^[a-z]+/",
+      "[reg] ^[a-z]+",
     ], f.nodes.map(&:to_s)
   end
 
@@ -40,9 +40,9 @@ class ParserTest < Minitest::Test
     f, errors = Fop.compile('release/-|_/{N}')
     assert_equal [], errors
     assert_equal [
-      "Text release",
-      "/^-|_/",
-      "N",
+      "[txt] release",
+      "[reg] ^-|_",
+      "[exp] N",
     ], f.nodes.map(&:to_s)
   end
 
@@ -50,12 +50,12 @@ class ParserTest < Minitest::Test
     f, errors = Fop.compile('release/-|_/{N}/ +/FOO{N}')
     assert_equal [], errors
     assert_equal [
-      "Text release",
-      "/^-|_/",
-      "N",
-      '/^ +/',
-      'Text FOO',
-      'N',
+      "[txt] release",
+      "[reg] ^-|_",
+      "[exp] N",
+      '[reg] ^ +',
+      '[txt] FOO',
+      '[exp] N',
     ], f.nodes.map(&:to_s)
   end
 
@@ -63,7 +63,7 @@ class ParserTest < Minitest::Test
     f, errors = Fop.compile('release\/-|_\/\{N\}')
     assert_equal [], errors
     assert_equal [
-      "Text release/-|_/{N}",
+      "[txt] release/-|_/{N}",
     ], f.nodes.map(&:to_s)
   end
 
@@ -71,9 +71,9 @@ class ParserTest < Minitest::Test
     f, errors = Fop.compile('release/-|_|\//5')
     assert_equal [], errors
     assert_equal [
-      "Text release",
-      '/^-|_|//',
-      "Text 5",
+      "[txt] release",
+      '[reg] ^-|_|/',
+      "[txt] 5",
     ], f.nodes.map(&:to_s)
   end
 
@@ -81,8 +81,8 @@ class ParserTest < Minitest::Test
     f, errors = Fop.compile('release/(\{\}){1}/')
     assert_equal [], errors
     assert_equal [
-      "Text release",
-      '/^(\{\}){1}/',
+      "[txt] release",
+      '[reg] ^(\{\}){1}',
     ], f.nodes.map(&:to_s)
   end
 
@@ -90,8 +90,8 @@ class ParserTest < Minitest::Test
     f, errors = Fop.compile('release/[0-9]{2}/')
     assert_equal [], errors
     assert_equal [
-      "Text release",
-      '/^[0-9]{2}/',
+      "[txt] release",
+      '[reg] ^[0-9]{2}',
     ], f.nodes.map(&:to_s)
   end
 end

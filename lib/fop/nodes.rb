@@ -8,13 +8,13 @@ module Fop
 
       def to_s
         w = wildcard ? "*" : nil
-        "Text #{w}#{str}"
+        "[txt] #{w}#{str}"
       end
     end
 
     Regex = Struct.new(:src, :regex) do
       def to_s
-        "/#{src}/"
+        "[reg] #{src}"
       end
     end
 
@@ -32,7 +32,7 @@ module Fop
 
       def to_s
         w = wildcard ? "*" : nil
-        s = "#{w}#{match}"
+        s = "[exp] #{w}#{match}"
         s << " #{operator} #{operator_arg}" if operator
         s
       end
