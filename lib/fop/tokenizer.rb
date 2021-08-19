@@ -4,6 +4,7 @@ module Fop
   class Tokenizer
     Token = Struct.new(:pos, :type, :val)
     Error = Class.new(StandardError)
+    Escapes = Struct.new(:operators, :regex_capture, :regex, :regex_escape, :wildcards, :exp)
 
     EXP_OPEN = "{".freeze
     EXP_CLOSE = "}".freeze
@@ -17,23 +18,35 @@ module Fop
     OP_ADD = "+".freeze
     OP_SUB = "-".freeze
 
-    attr_accessor :escape_wildcards
-    attr_accessor :escape_operators
-    attr_accessor :escape_regex
-    attr_accessor :escape_regex_capture
+    #
+    # Controls which "mode" the tokenizer is currently in. This is a necessary result of the syntax lacking
+    # explicit string delimiters. That *could* be worked around by requiring users to escape all reserved chars,
+    # but that's ugly af. Instead, the parser continually assesses the current context and flips these flags on
+    # or off to auto-escape certain chars for the next token.
+    #
+    attr_reader :escape
 
     def initialize(src)
       @src = src
       @end = src.size - 1
       @start_i = 0
       @i = 0
+      reset_escapes!
     end
 
+    # Auto-escape operators and regex capture vars. Appropriate for top-level syntax.
     def reset_escapes!
-      self.escape_wildcards = false
-      self.escape_operators = true
-      self.escape_regex = false
-      self.escape_regex_capture = true
+      @escape = Escapes.new(true, true)
+    end
+
+    # Auto-escape anything you'd find in a regular expression
+    def regex_mode!
+      @escape.regex = false # look for the final /
+      @escape.regex_escape = true # escape any \ UNLESS it's followed by / (allows escaping of regex special like { and } without double escaping)
+      @escape.wildcards = true
+      @escape.operators = true
+      @escape.regex_capture = true
+      @escape.exp = true
     end
 
     def next
@@ -50,21 +63,21 @@ module Fop
         @i += 1
         token! Tokens::WILDCARD
       when REGEX_DELIM
-        if @escape_regex
+        if @escape.regex
           get_str!
         else
           @i += 1
           token! Tokens::REG_DELIM
         end
       when REGEX_CAPTURE
-        if @escape_regex_capture
+        if @escape.regex_capture
           get_str!
         else
           @i += 1
           token! Tokens::REG_CAPTURE, char
         end
       when OP_REPLACE, OP_APPEND, OP_PREPEND, OP_ADD, OP_SUB
-        if @escape_operators
+        if @escape.operators
           get_str!
         else
           @i += 1
@@ -76,6 +89,10 @@ module Fop
     end
 
     private
+
+    def peek
+      @src[@i+1]
+    end
 
     def token!(type, val = nil)
       t = Token.new(@start_i, type, val)
@@ -99,34 +116,48 @@ module Fop
         case char
         when ESCAPE
           @i += 1
-          escape = true
+          if @escape.regex_escape and peek != REGEX_DELIM
+            str << char
+          else
+            escape = true
+          end
         when EXP_OPEN
-          found_end = true
+          if @escape.exp
+            @i += 1
+            str << char
+          else
+            found_end = true
+          end
         when EXP_CLOSE
-          found_end = true
+          if @escape.exp
+            @i += 1
+            str << char
+          else
+            found_end = true
+          end
         when WILDCARD
-          if @escape_wildcards
+          if @escape.wildcards
             @i += 1
             str << char
           else
             found_end = true
           end
         when REGEX_DELIM
-          if @escape_regex
+          if @escape.regex
             @i += 1
             str << char
           else
             found_end = true
           end
         when REGEX_CAPTURE
-          if @escape_regex_capture
+          if @escape.regex_capture
             @i += 1
             str << char
           else
             found_end = true
           end
         when OP_REPLACE, OP_APPEND, OP_PREPEND, OP_ADD, OP_SUB
-          if @escape_operators
+          if @escape.operators
             @i += 1
             str << char
           else

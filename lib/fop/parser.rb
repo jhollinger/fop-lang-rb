@@ -67,7 +67,7 @@ module Fop
       exp = Nodes::Expression.new
 
       # Find the match pattern
-      @tokenizer.escape_operators = false
+      @tokenizer.escape.operators = false
       t = @tokenizer.next
       case t.type
       when Tokens::TEXT, Tokens::WILDCARD
@@ -87,7 +87,7 @@ module Fop
       end
 
       # Find the operator (if any)
-      @tokenizer.escape_operators = false
+      @tokenizer.escape.operators = false
       t = @tokenizer.next
       case t.type
       when Tokens::EXP_CLOSE
@@ -99,9 +99,9 @@ module Fop
       end
 
       # Find the argument (if any)
-      @tokenizer.escape_operators = true
-      @tokenizer.escape_regex = true
-      @tokenizer.escape_regex_capture = false if exp.regex_src
+      @tokenizer.escape.operators = true
+      @tokenizer.escape.regex = true
+      @tokenizer.escape.regex_capture = false if exp.regex_src
       found_close, eof = false, false
       until found_close or eof
         t = @tokenizer.next
@@ -125,10 +125,7 @@ module Fop
     end
 
     def parse_regex!(t, wildcard = false)
-      @tokenizer.escape_wildcards = true
-      @tokenizer.escape_operators = true
-      @tokenizer.escape_regex = false
-      @tokenizer.escape_regex_capture = true
+      @tokenizer.regex_mode!
       reg = Nodes::Regex.new
 
       t = @tokenizer.next
