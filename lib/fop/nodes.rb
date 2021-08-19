@@ -18,7 +18,7 @@ module Fop
       end
     end
 
-    Expression = Struct.new(:wildcard, :match, :regex_src, :regex_match, :regex, :operator, :operator_arg, :operator_arg_w_caps, :expression) do
+    Expression = Struct.new(:wildcard, :match, :regex_match, :regex, :operator, :operator_arg, :operator_arg_w_caps, :expression) do
       def consume!(input)
         if (match = regex.match(input))
           val = match.to_s

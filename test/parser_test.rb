@@ -17,6 +17,17 @@ class ParserTest < Minitest::Test
     ], f.nodes.map(&:to_s)
   end
 
+  def test_compile_regex_exp
+    f, errors = Fop.compile('{/[0-9]{2}/}')
+    assert_equal [], errors
+    assert_equal [
+      "/^[0-9]{2}/",
+    ], f.nodes.map(&:to_s)
+  end
+
+  def test_compile_replace_exp
+  end
+
   def test_compile_regex
     f, errors = Fop.compile('/[a-z]+/')
     assert_equal [], errors
