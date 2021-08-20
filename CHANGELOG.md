@@ -1,3 +1,7 @@
+### 0.5.0 (2021-08-20)
+* Allow regex matching outside of expressions.
+* Improved parser.
+
 ### 0.4.0 (2021-08-16)
 * Add append and prepend operators.
 * Support regex capture groups in all operator arguments.

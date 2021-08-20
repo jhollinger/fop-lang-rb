@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.licenses = ['MIT']
   s.summary = 'A micro expression language'
   s.description = 'A micro expression language for Filter and OPerations on text'
-  s.date = '2021-08-16'
+  s.date = '2021-08-20'
   s.authors = ['Jordan Hollinger']
   s.email = 'jordan.hollinger@gmail.com'
   s.homepage = 'https://jhollinger.github.io/fop-lang-rb/'
