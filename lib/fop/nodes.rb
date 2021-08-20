@@ -1,46 +1,30 @@
 module Fop
   module Nodes
-    Text = Struct.new(:wildcard, :str) do
-      def consume!(input)
-        @regex ||= Regexp.new((wildcard ? ".*" : "^") + Regexp.escape(str))
-        input.slice!(@regex)
-      end
-
+    Text = Struct.new(:wildcard, :str, :regex) do
       def to_s
         w = wildcard ? "*" : nil
-        "Text #{w}#{str}"
+        "[#{w}txt] #{str}"
       end
     end
 
-    Op = Struct.new(:wildcard, :match, :regex_match, :regex, :operator, :operator_arg, :operator_arg_w_caps, :expression) do
-      def consume!(input)
-        if (match = regex.match(input))
-          val = match.to_s
-          blank = val == Parser::BLANK
-          input.sub!(val, Parser::BLANK) unless blank
-          found_val = regex_match || !blank
-          arg = operator_arg_w_caps ? sub_caps(operator_arg_w_caps, match.captures) : operator_arg
-          expression && found_val ? expression.call(val, operator, arg) : val
-        end
-      end
-
+    Regex = Struct.new(:wildcard, :src, :regex) do
       def to_s
         w = wildcard ? "*" : nil
-        s = "#{w}#{match}"
-        s << " #{operator} #{operator_arg}" if operator
-        s
+        "[#{w}reg] #{src}"
       end
+    end
 
-      private
-
-      def sub_caps(tokens, caps)
-        tokens.map { |t|
-          case t
-          when String then t
-          when Parser::CaptureGroup then caps[t.index].to_s
-          else raise Parser::Error, "Unexpected #{t} in capture group"
-          end
-        }.join("")
+    Expression = Struct.new(:wildcard, :match, :regex_match, :regex, :operator, :arg) do
+      def to_s
+        w = wildcard ? "*" : nil
+        s = "[#{w}exp] #{match}"
+        if operator
+          arg_str = arg
+            .map { |a| a.is_a?(Integer) ? "$#{a+1}" : a.to_s }
+            .join("")
+          s << " #{operator} #{arg_str}"
+        end
+        s
       end
     end
   end
