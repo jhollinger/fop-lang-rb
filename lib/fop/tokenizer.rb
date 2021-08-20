@@ -43,7 +43,6 @@ module Fop
     def regex_mode!
       @escape.regex = false # look for the final /
       @escape.regex_escape = true # pass \ through to the regex engine UNLESS it's followed by a /
-      #@escape.regex_escape = true # escape any \ UNLESS it's followed by / (allows escaping of regex special like { and } without double escaping)
       @escape.wildcards = true
       @escape.operators = true
       @escape.regex_capture = true
