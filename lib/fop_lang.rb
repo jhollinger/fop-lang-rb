@@ -1,6 +1,6 @@
 require_relative 'fop/version'
 require_relative 'fop/compiler'
-require_relative 'fop/runtime'
+require_relative 'fop/program'
 
 def Fop(src)
   ::Fop.compile!(src)
@@ -8,14 +8,15 @@ end
 
 module Fop
   def self.compile!(src)
-    fop, errors = compile(src)
-# TODO better exception
-    raise "Fop errors: " + errors.map(&:message).join(",") if errors.any?
-    fop
+    prog, errors = compile(src)
+    # TODO better exception
+    raise "Fop errors: " + errors.map(&:message).join(",") if errors
+    prog
   end
 
   def self.compile(src)
-    nodes, errors = ::Fop::Compiler.compile(src)
-    return ::Fop::Runtime.new(nodes), errors
+    instructions, errors = ::Fop::Compiler.compile(src)
+    return nil, errors if errors
+    return Program.new(instructions), nil
   end
 end

@@ -3,7 +3,7 @@ require_relative 'tokens'
 module Fop
   class Tokenizer
     Token = Struct.new(:pos, :type, :val)
-    Error = Class.new(StandardError)
+    Error = Struct.new(:pos, :message)
     Escapes = Struct.new(:operators, :regex_capture, :regex, :regex_escape, :wildcards, :exp)
 
     EXP_OPEN = "{".freeze
@@ -42,7 +42,8 @@ module Fop
     # Auto-escape anything you'd find in a regular expression
     def regex_mode!
       @escape.regex = false # look for the final /
-      @escape.regex_escape = true # escape any \ UNLESS it's followed by / (allows escaping of regex special like { and } without double escaping)
+      @escape.regex_escape = true # pass \ through to the regex engine UNLESS it's followed by a /
+      #@escape.regex_escape = true # escape any \ UNLESS it's followed by / (allows escaping of regex special like { and } without double escaping)
       @escape.wildcards = true
       @escape.operators = true
       @escape.regex_capture = true
@@ -61,7 +62,7 @@ module Fop
         token! Tokens::EXP_CLOSE
       when WILDCARD
         @i += 1
-        token! Tokens::WILDCARD
+        token! Tokens::WILDCARD, WILDCARD
       when REGEX_DELIM
         if @escape.regex
           get_str!
@@ -74,7 +75,10 @@ module Fop
           get_str!
         else
           @i += 1
-          token! Tokens::REG_CAPTURE, char
+          t = token! Tokens::REG_CAPTURE, @src[@i]
+          @i += 1
+          @start_i = @i
+          t
         end
       when OP_REPLACE, OP_APPEND, OP_PREPEND, OP_ADD, OP_SUB
         if @escape.operators
@@ -89,10 +93,6 @@ module Fop
     end
 
     private
-
-    def peek
-      @src[@i+1]
-    end
 
     def token!(type, val = nil)
       t = Token.new(@start_i, type, val)
@@ -116,7 +116,7 @@ module Fop
         case char
         when ESCAPE
           @i += 1
-          if @escape.regex_escape and peek != REGEX_DELIM
+          if @escape.regex_escape and @src[@i] != REGEX_DELIM
             str << char
           else
             escape = true
@@ -169,7 +169,7 @@ module Fop
         end
       end
 
-      raise Error, "Trailing escape" if escape
+      return Token.new(@i - 1, Tokens::TR_ESC) if escape
       token! Tokens::TEXT, str
     end
   end

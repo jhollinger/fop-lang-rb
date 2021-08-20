@@ -2,15 +2,6 @@ require_relative 'tokenizer'
 require_relative 'nodes'
 
 module Fop
-  SyntaxError = Struct.new(:token, :message)
-  NameError = Struct.new(:token, :message)
-  ArgError = Struct.new(:token, :message)
-  RegexError = Struct.new(:token, :message)
-    #EXP_REPLACE = ->(_val, _op, arg) { arg || BLANK }
-    #EXP_MATH = ->(val, op, arg) { val.to_i.send(op, arg.to_i) }
-    #EXP_APPEND = ->(val, _op, arg) { val + arg }
-    #EXP_PREPEND = ->(val, _op, arg) { arg + val }
-
   class Parser
     DIGIT = /^[0-9]$/
     REGEX_START = "^".freeze
@@ -22,6 +13,13 @@ module Fop
       "*" => ".*".freeze,
     }.freeze
     OPS_WITH_OPTIONAL_ARGS = [Tokenizer::OP_REPLACE]
+    TR_REGEX = /.*/
+
+    Error = Struct.new(:type, :token, :message) do
+      def to_s
+        "#{type.to_s.capitalize} error: #{message} at column #{token.pos}"
+      end
+    end
 
     attr_reader :errors
 
@@ -40,10 +38,11 @@ module Fop
         t = @tokenizer.next
         case t.type
         when Tokens::WILDCARD
-          errors << SyntaxError.new(t, "Consecutive wildcards") if wildcard
+          errors << Error.new(:syntax, t, "Consecutive wildcards") if wildcard
           wildcard = true
         when Tokens::TEXT
-          nodes << Nodes::Text.new(wildcard, t.val)
+          reg = build_regex!(wildcard, t, Regexp.escape(t.val))
+          nodes << Nodes::Text.new(wildcard, t.val, reg)
           wildcard = false
         when Tokens::EXP_OPEN
           nodes << parse_exp!(wildcard)
@@ -54,14 +53,10 @@ module Fop
         when Tokens::EOF
           eof = true
         else
-          errors << SyntaxError.new(t, "Unexpected #{t.type}")
+          errors << Error.new(:syntax, t, "Unexpected #{t.type}")
         end
       end
-
-      if wildcard
-        nodes << Nodes::Text.new(true, "")
-      end
-
+      nodes << Nodes::Text.new(true, "", TR_REGEX) if wildcard
       return nodes, @errors
     end
 
@@ -69,7 +64,7 @@ module Fop
       exp = Nodes::Expression.new(wildcard)
       parse_exp_match! exp
       op_token = parse_exp_operator! exp
-      if op_token
+      if exp.operator
         parse_exp_arg! exp, op_token
       end
       return exp
@@ -83,9 +78,9 @@ module Fop
         exp.match = t.val
         if (src = REGEX_MATCHES[exp.match])
           reg = Regexp.new((exp.wildcard ? REGEX_LAZY_WILDCARD : REGEX_START) + src)
-          exp.regex = Nodes::Regex.new(src, reg)
+          exp.regex = Nodes::Regex.new(exp.wildcard, src, reg)
         else
-          errors << NameError.new(t, "Unknown match type '#{exp.match}'") if exp.regex.nil?
+          errors << Error.new(:name, t, "Unknown match type '#{exp.match}'") if exp.regex.nil?
         end
       when Tokens::REG_DELIM
         exp.regex = parse_regex!(exp.wildcard)
@@ -93,7 +88,7 @@ module Fop
         exp.regex_match = true
         @tokenizer.reset_escapes!
       else
-        errors << SyntaxError.new(t, "Unexpected #{t.type}; expected a string or a regex")
+        errors << Error.new(:syntax, t, "Unexpected #{t.type}; expected a string or a regex")
       end
     end
 
@@ -106,59 +101,62 @@ module Fop
       when Tokens::OPERATOR
         exp.operator = t.val
       else
-        errors << SyntaxError.new(t, "Unexpected #{t.type}; expected an operator")
+        errors << Error.new(:syntax, t, "Unexpected #{t.type}; expected an operator")
       end
+      t
     end
 
     def parse_exp_arg!(exp, op_token)
       @tokenizer.escape.operators = true
       @tokenizer.escape.regex = true
-      @tokenizer.escape.regex_capture = false if exp.regex_src
+      @tokenizer.escape.regex_capture = false if exp.regex_match
 
+      exp.arg = []
       found_close, eof = false, false
       until found_close or eof
         t = @tokenizer.next
         case t.type
         when Tokens::TEXT
-          exp.args << t.val
-        when Tokens::REGEX_CAPTURE
-          exp.args << t.val.to_i
-          errors << SyntaxError.new(t, "Invalid regex capture; must be between 0 and 9") unless t.val =~ DIGIT
-          errors << SyntaxError.new(t, "Unexpected regex capture; expected str or '}'") if !exp.regex_src
+          exp.arg << t.val
+        when Tokens::REG_CAPTURE
+          exp.arg << t.val.to_i - 1
+          errors << Error.new(:syntax, t, "Invalid regex capture; must be between 0 and 9 (found #{t.val})") unless t.val =~ DIGIT
+          errors << Error.new(:syntax, t, "Unexpected regex capture; expected str or '}'") if !exp.regex_match
         when Tokens::EXP_CLOSE
           found_close = true
         when Tokens::EOF
           eof = true
-          errors << SyntaxError.new(t, "Unexpected #{t.type}; expected str or '}'")
+          errors << Error.new(:syntax, t, "Unexpected #{t.type}; expected str or '}'")
         else
-          errors << SyntaxError.new(t, "Unexpected #{t.type}; expected str or '}'")
+          errors << Error.new(:syntax, t, "Unexpected #{t.type}; expected str or '}'")
         end
       end
 
-      if exp.args.size != 1 and !OPS_WITH_OPTIONAL_ARGS.include?(exp.operator)
-        errors << ArgError.new(op_token, "Operator '#{op_token.val}' requires an argument")
+      if exp.arg.size != 1 and !OPS_WITH_OPTIONAL_ARGS.include?(exp.operator)
+        errors << Error.new(:arg, op_token, "Operator '#{op_token.val}' requires an argument")
       end
     end
 
-    def parse_regex!(wildcard = false)
+    def parse_regex!(wildcard)
       @tokenizer.regex_mode!
-      reg = Nodes::Regex.new
-
       t = @tokenizer.next
+      reg = Nodes::Regex.new(wildcard, t.val)
       if t.type == Tokens::TEXT
-        reg.src = (wildcard ? REGEX_LAZY_WILDCARD : REGEX_START) + t.val
-        begin
-          reg.regex = Regexp.new(reg.src)
-        rescue RegexpError => e
-          errors << RegexError.new(t, e.message)
-        end
+        reg.regex = build_regex!(wildcard, t)
       else
-        errors << SyntaxError.new(t, "Unexpected #{t.type}; expected a string of regex")
+        errors << Error.new(:syntax, t, "Unexpected #{t.type}; expected a string of regex")
       end
 
       t = @tokenizer.next
-      errors << SyntaxError.new(t, "Unexpected #{t.type}; expected a string of regex") unless t.type == Tokens::REG_DELIM
+      errors << Error.new(:syntax, t, "Unexpected #{t.type}; expected a string of regex") unless t.type == Tokens::REG_DELIM
       reg
+    end
+
+    def build_regex!(wildcard, token, src = token.val)
+      Regexp.new((wildcard ? REGEX_LAZY_WILDCARD : REGEX_START) + src)
+    rescue RegexpError => e
+      errors << Error.new(:regex, token, e.message)
+      nil
     end
   end
 end

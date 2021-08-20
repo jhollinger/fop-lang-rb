@@ -7,6 +7,7 @@ module Fop
     REG_DELIM = :/
     WILDCARD = :*
     OPERATOR = :op
+    TR_ESC = :"trailing escape"
     EOF = :EOF
   end
 end
