@@ -12,5 +12,6 @@ Gem::Specification.new do |s|
   s.homepage = 'https://jhollinger.github.io/fop-lang-rb/'
   s.require_paths = ['lib']
   s.files = [Dir.glob('lib/**/*'), 'README.md'].flatten
+  s.executables << 'fop'
   s.required_ruby_version = '>= 2.3.0'
 end

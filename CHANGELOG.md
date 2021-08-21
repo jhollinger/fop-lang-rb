@@ -1,3 +1,6 @@
+### 0.6.0 (2021-08-20)
+* Add `fop` binary.
+
 ### 0.5.0 (2021-08-20)
 * Allow regex matching outside of expressions.
 * Improved parser.
