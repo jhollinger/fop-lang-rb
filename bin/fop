@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+# Used for local testing
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
+
+require 'fop_lang'
+require 'fop/cli'
+
+opts = Fop::CLI.options!
+src = opts.src.read.chomp
+fop, errors = Fop.compile(src)
+opts.src.close
+NL = "\n".freeze
+
+if errors
+  $stderr.puts src
+  $stderr.puts errors.join(NL)
+  exit 1
+end
+
+if opts.check
+  $stdout.puts "Syntax OK" unless opts.quiet
+  exit 0
+end
+
+while (line = gets) do
+  line.chomp!
+  if (res = fop.apply(line))
+    print(res << NL)
+  end
+end
