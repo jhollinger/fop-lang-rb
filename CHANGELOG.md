@@ -1,3 +1,7 @@
+### 0.7.0 (2021-08-30)
+* Show error and exit when no fop expression is given.
+* Add version flag.
+
 ### 0.6.0 (2021-08-20)
 * Add `fop` binary.
 
