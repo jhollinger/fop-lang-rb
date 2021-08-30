@@ -15,12 +15,12 @@ You may `require 'fop_lang'` in a Ruby script:
 ```ruby
 require 'fop_lang'
 
-f = Fop("foo {N+1}")
+f = Fop('foo {N+1}')
 
-f.apply("foo 1")
+f.apply('foo 1')
 => "foo 2"
 
-f.apply("bar 1")
+f.apply('bar 1')
 => nil
 ```
 
