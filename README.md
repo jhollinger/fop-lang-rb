@@ -27,7 +27,7 @@ f.apply('bar 1')
 or run `fop` from the command line:
 
 ```bash
-$ fop 'foo {N+1}' input.txt
+$ echo 'foo 1' | fop 'foo {N+1}'
 foo 2
 ```
 
