@@ -33,34 +33,47 @@ foo 2
 
 ## Syntax
 
-`Text Literal {Operation}`
+`Text /(R|r)egex/ {N+1}`
 
-The above expression contains the only two parts of Fop (except for the wildcard and escape characters).
+The above program demonstrates a text match, a regex match, and a match expression. If the input matches all three segments, output is given. If the input was `Text regex 5`, the output would be `Text regex 6`.
 
-**Text Literals**
+### Text match
 
-A text literal works how it sounds: the input must match it exactly. If it matches it passes through unchanged. The only exception is the `*` (wildcard) character, which matches 0 or more of anything. Wildcards can be used anywhere except inside `{...}` (operations).
+The input must match this text exactly. Whitespace is part of the match. Wildcards (`*`) are allowed. Special characters (`*/{}\`) may be escaped with `\`.
 
-If `\` (escape) is used before the special characters `*`, `{` or `}`, then that character is treated like a text literal. It's recommended to use single-quoted Ruby strings with Fop expressions that so you don't need to double-escape.
+The output of a text match will be the matching input.
 
-**Operations**
+### Regex match
 
-Operations are the interesting part of Fop, and are specified between `{` and `}`. An Operation can consist of one to three parts:
+Regular expressions may be placed between `/`s. If the regular expression contains a `/`, you may escape it with `\`. Special regex characters like `[]()+.*` may also be escaped with `\`.
 
-1. Matching class (required): Defines what characters the operation will match and operate on.
-  * `N` is the numeric class and will match one or more digits.
-  * `A` is the alpha class and will match one or more letters (lower or upper case).
-  * `W` is the word class and matches alphanumeric chars and underscores.
-  * `*` is the wildcard class and greedily matches everything after it.
-  * `/.../` matches on the supplied regex between the `/`'s. If you're regex contains a `/`, it must be escaped. Capture groups may be referenced in the operator argument as `$1`, `$2`, etc.
-3. Operator (optional): What to do to the matching characters.
-  * `=` Replace the matching character(s) with the given argument. If no argument is given, drop the matching chars.
-  * `>` Append the following chars to the matching value.
-  * `<` Prepend the following chars to the matching value.
-  * `+` Perform addition on the matching number and the argument (`N` only).
-  * `-` Subtract the argument from the matching number (`N` only).
-5. Operator argument (required for some operators): meaning varies by operator.
+The output of a regex match will be the matching input.
 
+### Match expression
+
+A match expression both matches on input and modifies that input. An expression is made up of 1 - 3 parts:
+
+1. The match, e.g. `N` for numeric.
+2. The operator, e.g. `+` for addition (optional).
+3. The argument, e.g `1` for "add one" (required for most operators).
+
+The output of a match expression will be the _modified_ matching input. If no operator is given, the output will be the matching input.
+
+**Matches**
+
+* `N` matches one or more consecutive digits.
+* `A` matches one or more letters (lower or upper case).
+* `W` matches alphanumeric chars and underscores.
+* `*` greedily matches everything after it.
+* `/regex/` matches on the supplied regex. Capture groups may be referenced in the argument as `$1`, `$2`, etc.
+
+**Operators**
+
+* `=` Replace the matching character(s) with the given argument. If no argument is given, drop the matching chars.
+* `>` Append the argument to the matching value.
+* `<` Prepend the argument to the matching value.
+* `+` Perform addition on the matching number and the argument (`N` only).
+* `-` Subtract the argument from the matching number (`N` only).
 
 ## Examples
 
