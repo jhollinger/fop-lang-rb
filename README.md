@@ -29,6 +29,7 @@ or run `fop` from the command line:
 ```bash
 $ echo 'foo 1' | fop 'foo {N+1}'
 foo 2
+$ echo 'bar 1' | fop 'foo {N+1}'
 ```
 
 ## Syntax
