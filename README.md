@@ -7,10 +7,10 @@ This is a Ruby implementation with both a library interface and a bin command.
 ## Installation
 
 ```bash
-gem install fop_lang
+$ gem install fop_lang
 ```
 
-You may `require 'fop_lang'` in a Ruby script:
+You may use fop in a Ruby script:
 
 ```ruby
 require 'fop_lang'
