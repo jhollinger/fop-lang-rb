@@ -7,7 +7,18 @@ require 'fop_lang'
 require 'fop/cli'
 
 opts = Fop::CLI.options!
+
+if opts.version
+  puts Fop::VERSION
+  exit 0
+end
+
 src = opts.src.read.chomp
+if src.empty?
+  $stderr.puts "No expression given"
+  exit 1
+end
+
 fop, errors = Fop.compile(src)
 opts.src.close
 NL = "\n".freeze

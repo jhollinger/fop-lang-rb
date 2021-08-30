@@ -2,7 +2,7 @@ require 'optparse'
 
 module Fop
   module CLI
-    Options = Struct.new(:src, :check, :quiet)
+    Options = Struct.new(:src, :check, :quiet, :version)
 
     def self.options!
       options = Options.new
@@ -18,12 +18,16 @@ module Fop
           options.check = true
         end
 
-        opts.on("-q", "--quiet") do
+        opts.on("-q", "--quiet", "Only print errors and output") do
           options.quiet = true
+        end
+
+        opts.on("--version", "Print version and exit") do
+          options.version = true
         end
       end.parse!
 
-      options.src ||= StringIO.new(ARGV.shift)
+      options.src ||= StringIO.new(ARGV.shift || "")
       options
     end
   end
