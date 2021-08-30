@@ -1,27 +1,37 @@
 # fop_lang
 
-Fop (Filter and OPerations language) is an experimental, tiny expression language in the vein of awk and sed. This is a Ruby implementation. It is useful for simultaneously matching and transforming text input.
+Fop (Filter and OPerations language) is an experimental, tiny expression language in the vein of awk and sed. This is a Ruby implementation with both a library interface and a bin command.
+
+Fop is useful for matching and transforming text input. Think of it like awk but with the condition and action segments combined.
+
+## Installation
 
 ```ruby
 gem 'fop_lang'
 ```
 
-## Release Number Example
-
-This example takes in GitHub branch names, decides if they're release branches, and if so, increments the version number.
+You may `require 'fop_lang'` in a Ruby script:
 
 ```ruby
-  f = Fop('release-{N}.{N+1}.{N=0}')
+require 'fop_lang'
 
-  puts f.apply('release-5.99.1')
-  =>           'release-5.100.0'
+prog = Fop("foo {N+1}")
 
-  puts f.apply('release-5')
-  => nil
-  # doesn't match the pattern
+prog.apply("foo 1")
+=> "foo 2"
+
+prog.apply("bar 1")
+=> nil
 ```
 
-## Anatomy of a Fop expression
+or run `fop` from the command line:
+
+```bash
+$ fop 'foo {N+1}' input.txt
+foo 2
+```
+
+## Syntax
 
 `Text Literal {Operation}`
 
@@ -51,7 +61,25 @@ Operations are the interesting part of Fop, and are specified between `{` and `}
   * `-` Subtract the argument from the matching number (`N` only).
 5. Operator argument (required for some operators): meaning varies by operator.
 
-## More Examples
+
+## Examples
+
+### Release Number Example
+
+This example takes in GitHub branch names, decides if they're release branches, and if so, increments the version number.
+
+```ruby
+  f = Fop('release-{N}.{N+1}.{N=0}')
+
+  puts f.apply('release-5.99.1')
+  =>           'release-5.100.0'
+
+  puts f.apply('release-5')
+  => nil
+  # doesn't match the pattern
+```
+
+### More Examples
 
 ```ruby
   f = Fop('release-{N=5}.{N+1}.{N=0}')
