@@ -6,8 +6,8 @@ Fop is useful for matching and transforming text input. Think of it like awk but
 
 ## Installation
 
-```ruby
-gem 'fop_lang'
+```bash
+gem install fop_lang
 ```
 
 You may `require 'fop_lang'` in a Ruby script:
