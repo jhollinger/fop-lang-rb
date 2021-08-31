@@ -16,10 +16,8 @@ You may use fop in a Ruby script:
 require 'fop_lang'
 
 f = Fop('foo {N+1}')
-
 f.apply('foo 1')
 => "foo 2"
-
 f.apply('bar 1')
 => nil
 ```
