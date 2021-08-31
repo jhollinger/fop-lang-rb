@@ -40,17 +40,23 @@ The above program demonstrates a text match, a regex match, and a match expressi
 
 ### Text match
 
+`Text ` and ` ` in the above example.
+
 The input must match this text exactly. Whitespace is part of the match. Wildcards (`*`) are allowed. Special characters (`*/{}\`) may be escaped with `\`.
 
 The output of a text match will be the matching input.
 
 ### Regex match
 
+`/(R|r)egex/` in the above example.
+
 Regular expressions may be placed between `/`s. If the regular expression contains a `/`, you may escape it with `\`. Special regex characters like `[]()+.*` may also be escaped with `\`.
 
 The output of a regex match will be the matching input.
 
 ### Match expression
+
+`{N+1}` in the above example.
 
 A match expression both matches on input and modifies that input. An expression is made up of 1 - 3 parts:
 
