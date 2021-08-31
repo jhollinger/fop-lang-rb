@@ -3,7 +3,6 @@ require_relative 'tokens'
 module Fop
   class Tokenizer
     Token = Struct.new(:pos, :type, :val)
-    Error = Struct.new(:pos, :message)
     Escapes = Struct.new(:operators, :regex_capture, :regex, :regex_escape, :wildcards, :exp)
 
     EXP_OPEN = "{".freeze
