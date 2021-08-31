@@ -107,7 +107,7 @@ This example takes in GitHub branch names, decides if they're release branches, 
 ```
 
 ```ruby
-  f = Fop('rel{/(ease)?/}-{N=5}.{N+1}.{N=0}')
+  f = Fop('rel/(ease)?/-{N=5}.{N+1}.{N=0}')
 
   puts f.apply('release-4.99.1')
   =>           'release-5.100.0'
