@@ -1,6 +1,6 @@
 # fop_lang
 
-Fop (Filter and OPerations language) is a tiny, experimental language for filtering and transforming text. Think of it like awk but with the condition and action segments combined.
+Fop (Filter and OPerations language) is a tiny, experimental language for filtering and operating on text. Think of it like awk but with the condition and action segments combined.
 
 This is a Ruby implementation with both a library interface and a bin command.
 
