@@ -1,3 +1,6 @@
+### 0.8.0 ?
+* Insignificant whitespace in match expressions
+
 ### 0.7.0 (2021-08-30)
 * Show error and exit when no fop expression is given.
 * Add version flag.

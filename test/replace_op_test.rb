@@ -8,7 +8,7 @@ class ReplaceOpTest < Minitest::Test
   end
 
   def test_numeric_word_replace
-    f = Fop("release-{N=16}.{N}.{N=foo bar}")
+    f = Fop('release-{N=16}.{N}.{N=foo\ bar}')
     assert_equal "release-16.23.foo bar", f.apply("release-5.23.9")
     assert_nil f.apply("release-5.23.foo bar")
   end
@@ -64,7 +64,7 @@ class ReplaceOpTest < Minitest::Test
   end
 
   def test_regex_replace_with_capture_groups
-    f = Fop("A {/(B) (C)/=$2 $1}")
+    f = Fop('A {/(B) (C)/=$2\ $1}')
     assert_equal "A C B", f.apply("A B C")
   end
 end

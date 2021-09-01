@@ -12,7 +12,7 @@ module Fop
       "A" => "[a-zA-Z]+".freeze,
       "*" => ".*".freeze,
     }.freeze
-    OPS_WITH_OPTIONAL_ARGS = [Tokenizer::OP_REPLACE]
+    #OPS_WITH_OPTIONAL_ARGS = [Tokenizer::OP_REPLACE]
     TR_REGEX = /.*/
 
     Error = Struct.new(:type, :token, :message) do
@@ -63,14 +63,15 @@ module Fop
     def parse_exp!(wildcard = false)
       exp = Nodes::Expression.new(wildcard)
       parse_exp_match! exp
-      op_token = parse_exp_operator! exp
-      if exp.operator
-        parse_exp_arg! exp, op_token
+      parse_exp_operator! exp
+      if exp.operator_token
+        parse_exp_arg! exp
       end
       return exp
     end
 
     def parse_exp_match!(exp)
+      @tokenizer.escape.whitespace = false
       @tokenizer.escape.operators = false
       t = @tokenizer.next
       case t.type
@@ -93,35 +94,44 @@ module Fop
     end
 
     def parse_exp_operator!(exp)
+      @tokenizer.escape.whitespace = false
       @tokenizer.escape.operators = false
       t = @tokenizer.next
       case t.type
       when Tokens::EXP_CLOSE
         # no op
-      when Tokens::OPERATOR
-        exp.operator = t.val
+      when Tokens::OPERATOR, Tokens::TEXT
+        exp.operator_token = t
       else
         errors << Error.new(:syntax, t, "Unexpected #{t.type}; expected an operator")
       end
-      t
     end
 
-    def parse_exp_arg!(exp, op_token)
+    def parse_exp_arg!(exp)
+      @tokenizer.escape.whitespace = false
+      @tokenizer.escape.whitespace_sep = false
       @tokenizer.escape.operators = true
       @tokenizer.escape.regex = true
       @tokenizer.escape.regex_capture = false if exp.regex_match
 
-      exp.arg = []
+      arg = Nodes::Arg.new([], false)
+      exp.args = []
       found_close, eof = false, false
       until found_close or eof
         t = @tokenizer.next
         case t.type
         when Tokens::TEXT
-          exp.arg << t.val
+          arg.segments << t.val
         when Tokens::REG_CAPTURE
-          exp.arg << t.val.to_i - 1
+          arg.has_captures = true
+          arg.segments << t.val.to_i - 1
           errors << Error.new(:syntax, t, "Invalid regex capture; must be between 0 and 9 (found #{t.val})") unless t.val =~ DIGIT
           errors << Error.new(:syntax, t, "Unexpected regex capture; expected str or '}'") if !exp.regex_match
+        when Tokens::WHITESPACE_SEP
+          if arg.segments.any?
+            exp.args << arg
+            arg = Nodes::Arg.new([])
+          end
         when Tokens::EXP_CLOSE
           found_close = true
         when Tokens::EOF
@@ -131,10 +141,11 @@ module Fop
           errors << Error.new(:syntax, t, "Unexpected #{t.type}; expected str or '}'")
         end
       end
+      exp.args << arg if arg.segments.any?
 
-      if exp.arg.size != 1 and !OPS_WITH_OPTIONAL_ARGS.include?(exp.operator)
-        errors << Error.new(:arg, op_token, "Operator '#{op_token.val}' requires an argument")
-      end
+      #if exp.arg.size != 1 and !OPS_WITH_OPTIONAL_ARGS.include?(exp.operator)
+      #  errors << Error.new(:arg, op_token, "Operator '#{op_token.val}' requires an argument")
+      #end
     end
 
     def parse_regex!(wildcard)

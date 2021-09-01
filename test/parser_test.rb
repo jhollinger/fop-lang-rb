@@ -1,6 +1,30 @@
 require 'test_helper'
 
 class ParserTest < Minitest::Test
+  def test_whitespace_in_text
+    nodes, errors = Fop::Parser.new('release 5.125.0').parse
+    assert_equal [], errors
+    assert_equal [
+      "[txt] release 5.125.0",
+    ], nodes.map(&:to_s)
+  end
+
+  def test_whitespace_in_regex
+    nodes, errors = Fop::Parser.new('/release 5.125.0/').parse
+    assert_equal [], errors
+    assert_equal [
+      "[reg] release 5.125.0",
+    ], nodes.map(&:to_s)
+  end
+
+  def test_whitespace_in_exp
+    nodes, errors = Fop::Parser.new('{ W = asdf\ zxcv }').parse
+    assert_equal [], errors
+    assert_equal [
+      "[exp] W = asdf zxcv",
+    ], nodes.map(&:to_s)
+  end
+
   def test_parse_text
     nodes, errors = Fop::Parser.new('release-5.125.0').parse
     assert_equal [], errors
@@ -158,6 +182,16 @@ class ParserTest < Minitest::Test
 
   def test_syntax_error_trailing_escape
     _nodes, errors = Fop::Parser.new('release\\').parse
+    refute_equal [], errors
+  end
+
+  def test_arg_error_too_few_args
+    _nodes, errors = Fop::Compiler.compile('{N+}')
+    refute_equal [], errors
+  end
+
+  def test_arg_error_too_many_args
+    _nodes, errors = Fop::Compiler.compile('{N+7 8}')
     refute_equal [], errors
   end
 end

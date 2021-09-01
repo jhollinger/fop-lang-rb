@@ -3,7 +3,7 @@ require_relative 'tokens'
 module Fop
   class Tokenizer
     Token = Struct.new(:pos, :type, :val)
-    Escapes = Struct.new(:operators, :regex_capture, :regex, :regex_escape, :wildcards, :exp)
+    Escapes = Struct.new(:whitespace, :whitespace_sep, :operators, :regex_capture, :regex, :regex_escape, :wildcards, :exp)
 
     EXP_OPEN = "{".freeze
     EXP_CLOSE = "}".freeze
@@ -16,6 +16,7 @@ module Fop
     OP_PREPEND = "<".freeze
     OP_ADD = "+".freeze
     OP_SUB = "-".freeze
+    WHITESPACE = " ".freeze
 
     #
     # Controls which "mode" the tokenizer is currently in. This is a necessary result of the syntax lacking
@@ -35,11 +36,12 @@ module Fop
 
     # Auto-escape operators and regex capture vars. Appropriate for top-level syntax.
     def reset_escapes!
-      @escape = Escapes.new(true, true)
+      @escape = Escapes.new(true, true, true, true)
     end
 
     # Auto-escape anything you'd find in a regular expression
     def regex_mode!
+      @escape.whitespace = true
       @escape.regex = false # look for the final /
       @escape.regex_escape = true # pass \ through to the regex engine UNLESS it's followed by a /
       @escape.wildcards = true
@@ -84,6 +86,17 @@ module Fop
         else
           @i += 1
           token! Tokens::OPERATOR, char
+        end
+      when WHITESPACE
+        if @escape.whitespace
+          get_str!
+        elsif !@escape.whitespace_sep
+          @i += 1
+          token! Tokens::WHITESPACE_SEP
+        else
+          @i += 1
+          @start_i = @i
+          self.next
         end
       else
         get_str!
@@ -156,6 +169,13 @@ module Fop
           end
         when OP_REPLACE, OP_APPEND, OP_PREPEND, OP_ADD, OP_SUB
           if @escape.operators
+            @i += 1
+            str << char
+          else
+            found_end = true
+          end
+        when WHITESPACE
+          if @escape.whitespace
             @i += 1
             str << char
           else
