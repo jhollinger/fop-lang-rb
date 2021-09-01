@@ -1,4 +1,4 @@
-### 0.8.0 ?
+### 0.8.0 (2021-09-01)
 * Allow insignificant whitespace in match expressions
 
 ### 0.7.0 (2021-08-30)
