@@ -25,6 +25,14 @@ class ParserTest < Minitest::Test
     ], nodes.map(&:to_s)
   end
 
+  def test_lots_of_whitespace_in_exp
+    nodes, errors = Fop::Parser.new('{      W   =       asdf\ \ \ zxcv    }').parse
+    assert_equal [], errors
+    assert_equal [
+      "[exp] W = asdf   zxcv",
+    ], nodes.map(&:to_s)
+  end
+
   def test_parse_text
     nodes, errors = Fop::Parser.new('release-5.125.0').parse
     assert_equal [], errors
