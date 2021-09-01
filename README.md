@@ -80,6 +80,10 @@ The output of a match expression will be the _modified_ matching input. If no op
 * `+` Perform addition on the matching number and the argument (`N` only).
 * `-` Subtract the argument from the matching number (`N` only).
 
+**Whitespace**
+
+Inside of match expressions, whitespace is an optional seperator of terms, i.e. `{ N + 1 }` is the same as `{N+1}`. This means that any spaces in string arguments must be escaped. For example, replacing a word with `foo bar` looks like `{W = foo\ bar}`.
+
 ## Examples
 
 ### Release Number Example
