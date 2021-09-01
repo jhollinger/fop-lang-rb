@@ -167,31 +167,31 @@ class ParserTest < Minitest::Test
 
   def test_syntax_error_unclosed_exp
     _nodes, errors = Fop::Parser.new('release{N').parse
-    refute_equal [], errors
+    assert_includes errors.map(&:to_s), "Syntax error: Unexpected EOF; expected an operator at column 9"
   end
 
   def test_syntax_error_unclosed_regex
     _nodes, errors = Fop::Parser.new('release/').parse
-    refute_equal [], errors
+    assert_includes errors.map(&:to_s), "Syntax error: Unexpected EOF; expected a string of regex at column 8"
   end
 
   def test_syntax_error_bad_regex
     _nodes, errors = Fop::Parser.new('release/[0-9').parse
-    refute_equal [], errors
+    assert_includes errors.map(&:to_s), "Regex error: premature end of char-class: /^[0-9/ at column 8"
   end
 
   def test_syntax_error_trailing_escape
     _nodes, errors = Fop::Parser.new('release\\').parse
-    refute_equal [], errors
+    assert_includes errors.map(&:to_s), "Syntax error: Unexpected trailing escape at column 7"
   end
 
   def test_arg_error_too_few_args
     _nodes, errors = Fop::Compiler.compile('{N+}')
-    refute_equal [], errors
+    assert_includes errors.map(&:to_s), "Argument error: + expects 1..1 arguments; 0 given at column 2"
   end
 
   def test_arg_error_too_many_args
     _nodes, errors = Fop::Compiler.compile('{N+7 8}')
-    refute_equal [], errors
+    assert_includes errors.map(&:to_s), "Argument error: + expects 1..1 arguments; 2 given at column 2"
   end
 end

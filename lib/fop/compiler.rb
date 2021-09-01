@@ -23,19 +23,6 @@ module Fop
       return instructions, nil
     end
 
-    module Validations
-      def self.validate_args(exp_node)
-        op_token = exp_node.operator_token || return
-        op = Instructions::OPERATIONS.fetch(op_token.val)
-        num = exp_node.args&.size || 0
-        arity = op.arity
-        max_arity = op.max_arity || arity
-        if num < arity or num > max_arity
-          Parser::Error.new(:arg, op_token, "#{op_token.val} expects #{arity}..#{max_arity} arguments; #{num} given")
-        end
-      end
-    end
-
     module Instructions
       Op = Struct.new(:proc, :arity, :max_arity)
       BLANK = "".freeze
@@ -88,6 +75,19 @@ module Fop
           args.map { |a|
             a.is_a?(Integer) ? caps[a].to_s : a
           }.join("")
+        end
+      end
+    end
+
+    module Validations
+      def self.validate_args(exp_node)
+        op_token = exp_node.operator_token || return
+        op = Instructions::OPERATIONS.fetch(op_token.val)
+        num = exp_node.args&.size || 0
+        arity = op.arity
+        max_arity = op.max_arity || arity
+        if num < arity or num > max_arity
+          Parser::Error.new(:argument, op_token, "#{op_token.val} expects #{arity}..#{max_arity} arguments; #{num} given")
         end
       end
     end
