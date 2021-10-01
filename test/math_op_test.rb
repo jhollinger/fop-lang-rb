@@ -10,4 +10,9 @@ class MathOpTest < Minitest::Test
     f = Fop("release-{N}.{N+100}.{N=0}")
     assert_equal "release-5.220.0", f.apply("release-5.120.1")
   end
+
+  def test_add_from_regex
+    f = Fop('release-{/\d+/ + 1}.0')
+    assert_equal "release-6.0", f.apply("release-5.0")
+  end
 end

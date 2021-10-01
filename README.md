@@ -77,8 +77,8 @@ The output of a match expression will be the _modified_ matching input. If no op
 * `=` Replace the matching character(s) with the given argument. If no argument is given, drop the matching chars.
 * `>` Append the argument to the matching value.
 * `<` Prepend the argument to the matching value.
-* `+` Perform addition on the matching number and the argument (`N` only).
-* `-` Subtract the argument from the matching number (`N` only).
+* `+` Perform addition on the matching number and the argument.
+* `-` Subtract the argument from the matching number.
 
 **Whitespace**
 
